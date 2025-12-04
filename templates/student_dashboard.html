@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand">🎓 Student Portal - Room {{ session.room_number }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-light btn-sm">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <button class="btn btn-success btn-lg w-100" onclick="toggleForm()">
+                    ➕ Register New Complaint
+                </button>
+            </div>
+            <div class="col-md-6 mb-3">
+                <button class="btn btn-info btn-lg w-100">
+                    👁️ View {{ complaints|length }} Complaint(s)
+                </button>
+            </div>
+        </div>
+
+        <!-- Complaint Form -->
+        <div id="complaintForm" style="display:none;" class="card mb-4 shadow">
+            <div class="card-body">
+                <h4 class="card-title">📝 Register New Complaint</h4>
+                <form method="POST" action="{{ url_for('student.register_complaint') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Room Number</label>
+                        <input type="text" name="room" class="form-control" value="{{ session.room_number }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select" required>
+                            <option value="">Select Category</option>
+                            <option value="Plumbing">Plumbing</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Food">Food</option>
+                            <option value="Cleanliness">Cleanliness</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="4" placeholder="Describe your complaint in detail..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit Complaint</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleForm()">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- My Complaints -->
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📋 My Complaints Status</h5>
+            </div>
+            <div class="card-body">
+                {% if complaints %}
+                    {% for complaint in complaints %}
+                        <div class="border rounded p-3 mb-3 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0">#{{ complaint.complaint_id }} - {{ complaint.category }}</h6>
+                                <span class="badge bg-{{ 'warning' if complaint.status == 'Pending' else 'info' if complaint.status == 'In Progress' else 'success' }}">
+                                    {{ complaint.status }}
+                                </span>
+                            </div>
+                            <span class="badge bg-{{ 'danger' if complaint.priority == 'High' else 'warning' if complaint.priority == 'Medium' else 'secondary' }} mb-2">
+                                {{ complaint.priority }} Priority
+                            </span>
+                            <p class="mb-1">{{ complaint.description }}</p>
+                            <small class="text-muted">
+                                Room: {{ complaint.room_number }} | 
+                                Submitted: {{ complaint.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                            </small>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <p class="lead">No complaints registered yet</p>
+                        <p>Click "Register New Complaint" to submit your first complaint</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleForm() {
+            const form = document.getElementById('complaintForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+</body>
+</html>
